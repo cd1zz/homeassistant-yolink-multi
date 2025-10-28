@@ -7,7 +7,6 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from yolink.home_manager import YoLinkHome
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_NAME
@@ -46,40 +45,51 @@ class YoLinkMultiHomeConfigFlow(ConfigFlow, domain=DOMAIN):
                     session, user_input[CONF_UAID], user_input[CONF_SECRET_KEY]
                 )
 
-                # Get access token first
-                await auth_mgr.async_get_access_token(use_refresh=False)
+                # Get access token to validate credentials
+                access_token = await auth_mgr.async_get_access_token(use_refresh=False)
 
-                # Test connection and get home info
-                yolink_home = YoLinkHome()
-                try:
-                    async with asyncio.timeout(10):
-                        await yolink_home.async_setup(auth_mgr, None)
-                        home_info = await yolink_home.async_get_home_info()
-                finally:
-                    # Always clean up
-                    await yolink_home.async_unload()
-
-                home_id = home_info.get("id")
-                home_name = home_info.get("name", "YoLink Home")
-
-                if not home_id:
-                    _LOGGER.error("No home_id returned from API")
-                    errors["base"] = "invalid_home"
-                else:
-                    # Check if this home is already configured
-                    await self.async_set_unique_id(f"{DOMAIN}_{home_id}")
-                    self._abort_if_unique_id_configured()
-
-                    # Create the config entry
-                    return self.async_create_entry(
-                        title=home_name,
-                        data={
-                            CONF_UAID: user_input[CONF_UAID],
-                            CONF_SECRET_KEY: user_input[CONF_SECRET_KEY],
-                            "home_id": home_id,
-                            "home_name": home_name,
+                # Get home info directly via API (no MQTT setup needed)
+                async with asyncio.timeout(10):
+                    async with session.post(
+                        "https://api.yosmart.com/open/yolink/v2/api",
+                        headers={
+                            "Authorization": f"Bearer {access_token}",
+                            "Content-Type": "application/json",
                         },
-                    )
+                        json={
+                            "method": "Home.getGeneralInfo",
+                            "time": int(asyncio.get_event_loop().time() * 1000),
+                        },
+                    ) as response:
+                        response.raise_for_status()
+                        result = await response.json()
+
+                        if result.get("code") != "000000":
+                            _LOGGER.error("API error: %s", result)
+                            errors["base"] = "invalid_home"
+                        else:
+                            home_data = result.get("data", {})
+                            home_id = home_data.get("id")
+                            home_name = home_data.get("name", "YoLink Home")
+
+                            if not home_id:
+                                _LOGGER.error("No home_id returned from API")
+                                errors["base"] = "invalid_home"
+                            else:
+                                # Check if this home is already configured
+                                await self.async_set_unique_id(f"{DOMAIN}_{home_id}")
+                                self._abort_if_unique_id_configured()
+
+                                # Create the config entry
+                                return self.async_create_entry(
+                                    title=home_name,
+                                    data={
+                                        CONF_UAID: user_input[CONF_UAID],
+                                        CONF_SECRET_KEY: user_input[CONF_SECRET_KEY],
+                                        "home_id": home_id,
+                                        "home_name": home_name,
+                                    },
+                                )
 
             except asyncio.TimeoutError:
                 _LOGGER.error("Timeout connecting to YoLink API")
