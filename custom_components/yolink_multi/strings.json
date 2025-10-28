@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add YoLink Home",
+        "description": "Enter your YoLink User Access Credentials (UAC) for the home you want to add. You can create UAC credentials at {uac_url}.\n\nEach set of credentials is tied to one home, allowing you to add multiple homes separately.",
+        "data": {
+          "uaid": "User Access ID (UAID)",
+          "secret_key": "Secret Key"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate YoLink Home",
+        "description": "Your credentials for {home_name} have expired. Please enter new credentials.",
+        "data": {
+          "uaid": "User Access ID (UAID)",
+          "secret_key": "Secret Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to YoLink API. Please check your credentials and try again.",
+      "timeout_connect": "Timeout connecting to YoLink API. Please try again.",
+      "invalid_home": "Could not retrieve home information. Please check your credentials.",
+      "wrong_home": "These credentials are for a different home. Please use credentials for the same home.",
+      "unknown": "An unexpected error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "This YoLink home is already configured.",
+      "reauth_successful": "Reauthentication successful."
+    }
+  }
+}
