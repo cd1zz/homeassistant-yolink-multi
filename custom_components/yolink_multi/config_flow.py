@@ -135,30 +135,43 @@ class YoLinkMultiHomeConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
 
                 # Get access token to verify credentials
-                await auth_mgr.async_get_access_token(use_refresh=False)
+                access_token = await auth_mgr.async_get_access_token(use_refresh=False)
 
-                # Test connection
-                yolink_home = YoLinkHome()
-                try:
-                    async with asyncio.timeout(10):
-                        await yolink_home.async_setup(auth_mgr, None)
-                        home_info = await yolink_home.async_get_home_info()
-                finally:
-                    await yolink_home.async_unload()
-
-                # Verify same home
-                home_id = home_info.get("id")
-                if home_id != reauth_entry.data.get("home_id"):
-                    errors["base"] = "wrong_home"
-                else:
-                    # Update credentials
-                    return self.async_update_reload_and_abort(
-                        reauth_entry,
-                        data_updates={
-                            CONF_UAID: user_input[CONF_UAID],
-                            CONF_SECRET_KEY: user_input[CONF_SECRET_KEY],
+                # Get home info directly via API
+                async with asyncio.timeout(10):
+                    async with session.post(
+                        "https://api.yosmart.com/open/yolink/v2/api",
+                        headers={
+                            "Authorization": f"Bearer {access_token}",
+                            "Content-Type": "application/json",
                         },
-                    )
+                        json={
+                            "method": "Home.getGeneralInfo",
+                            "time": int(asyncio.get_event_loop().time() * 1000),
+                        },
+                    ) as response:
+                        response.raise_for_status()
+                        result = await response.json()
+
+                        if result.get("code") != "000000":
+                            _LOGGER.error("API error during reauth: %s", result)
+                            errors["base"] = "cannot_connect"
+                        else:
+                            home_data = result.get("data", {})
+                            home_id = home_data.get("id")
+
+                            # Verify same home
+                            if home_id != reauth_entry.data.get("home_id"):
+                                errors["base"] = "wrong_home"
+                            else:
+                                # Update credentials
+                                return self.async_update_reload_and_abort(
+                                    reauth_entry,
+                                    data_updates={
+                                        CONF_UAID: user_input[CONF_UAID],
+                                        CONF_SECRET_KEY: user_input[CONF_SECRET_KEY],
+                                    },
+                                )
 
             except asyncio.TimeoutError:
                 errors["base"] = "timeout_connect"
