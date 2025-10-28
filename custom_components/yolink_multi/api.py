@@ -76,7 +76,7 @@ class YoLinkUACAuth(YoLinkAuthMgr):
 
         try:
             async with asyncio.timeout(10):
-                async with self.websession.post(
+                async with self._session.post(
                     self._token_url, json=data
                 ) as response:
                     response.raise_for_status()
