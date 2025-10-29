@@ -24,6 +24,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -123,6 +124,14 @@ SENSOR_TYPES: tuple[YoLinkBinarySensorEntityDescription, ...] = (
             in [DEV_MODEL_WATER_METER_YS5018_EC, DEV_MODEL_WATER_METER_YS5018_UC]
         ),
     ),
+    YoLinkBinarySensorEntityDescription(
+        key="online",
+        translation_key="online",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        # This sensor exists for all devices
+        exists_fn=lambda device: True,
+    ),
 )
 
 
@@ -169,6 +178,12 @@ class YoLinkBinarySensorEntity(YoLinkEntity, BinarySensorEntity):
     @callback
     def update_entity_state(self, state: dict[str, Any]) -> None:
         """Update HA Entity State."""
+        # Special handling for online/connectivity sensor
+        if self.entity_description.key == "online":
+            self._attr_is_on = self.coordinator.dev_online
+            self.async_write_ha_state()
+            return
+
         if (
             _attr_val := self.entity_description.value(
                 state.get(self.entity_description.state_key)
@@ -181,4 +196,8 @@ class YoLinkBinarySensorEntity(YoLinkEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return true is device is available."""
+        # Online sensor is always available (it reports online/offline status)
+        if self.entity_description.key == "online":
+            return super().available
+
         return super().available and self.coordinator.dev_online

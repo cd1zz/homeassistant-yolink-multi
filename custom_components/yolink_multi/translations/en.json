@@ -38,6 +38,11 @@
       "last_closed": {
         "name": "Last closed"
       }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Online"
+      }
     }
   }
 }
