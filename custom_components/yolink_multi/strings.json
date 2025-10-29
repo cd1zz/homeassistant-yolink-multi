@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Add YoLink Home",
-        "description": "Enter your YoLink User Access Credentials (UAC) for the home you want to add. You can create UAC credentials at {uac_url}.\n\nEach set of credentials is tied to one home, allowing you to add multiple homes separately.",
+        "description": "Enter your YoLink User Access Credentials (UAC) for the home you want to add.\n\nTo create UAC credentials:\n1. Open YoLink mobile app\n2. Go to [Account] → [Advanced Settings] → [Personal Access Credentials]\n3. Tap [+] to create new credentials\n4. Make sure you're viewing the correct home first\n\nEach set of credentials is tied to one home, allowing you to add multiple homes separately.\n\nDocs: {uac_docs}",
         "data": {
           "uaid": "User Access ID (UAID)",
           "secret_key": "Secret Key"

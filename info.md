@@ -12,12 +12,15 @@ Enable multiple YoLink homes in Home Assistant using UAC authentication.
 
 ## Quick Setup
 
-1. Get UAC credentials from https://www.yosmart.com/user/uac
+1. Get UAC credentials from YoLink mobile app:
+   - Open YoLink app → [Account] → [Advanced Settings] → [Personal Access Credentials] → [+]
 2. Add integration via Settings → Devices & Services
 3. Enter your UAID and Secret Key
 4. Devices automatically discovered!
 
 For each additional home, repeat with new UAC credentials.
+
+**Docs:** http://doc.yosmart.com/docs/overall/qsg_uac/
 
 ## Documentation
 

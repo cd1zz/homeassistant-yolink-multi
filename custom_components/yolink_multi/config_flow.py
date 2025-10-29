@@ -109,7 +109,7 @@ class YoLinkMultiHomeConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
             description_placeholders={
-                "uac_url": "https://www.yosmart.com/user/uac",
+                "uac_docs": "http://doc.yosmart.com/docs/overall/qsg_uac/",
             },
         )
 

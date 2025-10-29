@@ -65,14 +65,17 @@ This integration supports the same devices as the [official YoLink integration](
 
 You need to create User Access Credentials (UAC) for each home you want to add:
 
-1. Go to https://www.yosmart.com/user/uac
-2. Log in with your YoLink account
-3. **Select the home** you want to create credentials for
-4. Click "Generate" to create new credentials
+1. Open the **YoLink mobile app**
+2. Navigate to: **[Account]** → **[Advanced Settings]** → **[Personal Access Credentials]**
+3. Tap the **[+]** button to create new credentials
+4. **Important:** Make sure you're viewing the home you want to add BEFORE creating credentials
+   - Switch homes using the home selector if needed
 5. Copy the **UAID** (User Access ID) and **Secret Key**
 6. Repeat for each additional home
 
 **Important:** Each UAC is tied to ONE home. If you have 2 homes, you need 2 sets of credentials.
+
+**Reference:** [Official YoLink UAC Documentation](http://doc.yosmart.com/docs/overall/qsg_uac/)
 
 ### Step 2: Add Integration in Home Assistant
 
