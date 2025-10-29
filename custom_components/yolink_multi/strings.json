@@ -29,5 +29,15 @@
       "already_configured": "This YoLink home is already configured.",
       "reauth_successful": "Reauthentication successful."
     }
+  },
+  "entity": {
+    "sensor": {
+      "last_opened": {
+        "name": "Last opened"
+      },
+      "last_closed": {
+        "name": "Last closed"
+      }
+    }
   }
 }

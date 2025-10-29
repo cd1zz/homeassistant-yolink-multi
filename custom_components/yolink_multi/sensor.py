@@ -53,6 +53,7 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfVolume,
 )
+from homeassistant.util import dt as dt_util
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import percentage
@@ -337,6 +338,18 @@ SENSOR_TYPES: tuple[YoLinkSensorEntityDescription, ...] = (
         in [DEV_MODEL_PLUG_YS6614_EC, DEV_MODEL_PLUG_YS6614_UC],
         should_update_entity=lambda value: value is not None,
     ),
+    YoLinkSensorEntityDescription(
+        key="last_opened",
+        translation_key="last_opened",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        exists_fn=lambda device: device.device_type == ATTR_DEVICE_DOOR_SENSOR,
+    ),
+    YoLinkSensorEntityDescription(
+        key="last_closed",
+        translation_key="last_closed",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        exists_fn=lambda device: device.device_type == ATTR_DEVICE_DOOR_SENSOR,
+    ),
 )
 
 
@@ -352,16 +365,30 @@ async def async_setup_entry(
         for device_coordinator in device_coordinators.values()
         if device_coordinator.device.device_type in SENSOR_DEVICE_TYPE
     ]
-    async_add_entities(
-        YoLinkSensorEntity(
-            config_entry,
-            sensor_device_coordinator,
-            description,
-        )
-        for sensor_device_coordinator in sensor_device_coordinators
-        for description in SENSOR_TYPES
-        if description.exists_fn(sensor_device_coordinator.device)
-    )
+
+    entities = []
+    for sensor_device_coordinator in sensor_device_coordinators:
+        for description in SENSOR_TYPES:
+            if description.exists_fn(sensor_device_coordinator.device):
+                # Use special entity for door timestamp sensors
+                if description.key in ("last_opened", "last_closed"):
+                    entities.append(
+                        YoLinkDoorTimestampSensorEntity(
+                            config_entry,
+                            sensor_device_coordinator,
+                            description,
+                        )
+                    )
+                else:
+                    entities.append(
+                        YoLinkSensorEntity(
+                            config_entry,
+                            sensor_device_coordinator,
+                            description,
+                        )
+                    )
+
+    async_add_entities(entities)
 
 
 class YoLinkSensorEntity(YoLinkEntity, SensorEntity):
@@ -393,6 +420,61 @@ class YoLinkSensorEntity(YoLinkEntity, SensorEntity):
             return
         self._attr_native_value = attr_val
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return true is device is available."""
+        return super().available and self.coordinator.dev_online
+
+
+class YoLinkDoorTimestampSensorEntity(YoLinkEntity, SensorEntity):
+    """YoLink Door Timestamp Sensor Entity.
+
+    Tracks when a door sensor was last opened or closed.
+    """
+
+    entity_description: YoLinkSensorEntityDescription
+    _previous_state: str | None = None
+
+    def __init__(
+        self,
+        config_entry: ConfigEntry,
+        coordinator: YoLinkCoordinator,
+        description: YoLinkSensorEntityDescription,
+    ) -> None:
+        """Init YoLink Door Timestamp Sensor."""
+        super().__init__(config_entry, coordinator)
+        self.entity_description = description
+        self._attr_unique_id = (
+            f"{coordinator.device.device_id} {self.entity_description.key}"
+        )
+        # Initialize with None - will be set on first state update
+        self._attr_native_value = None
+
+    @callback
+    def update_entity_state(self, state: dict) -> None:
+        """Update HA Entity State based on door state changes."""
+        # Get current door state
+        current_state = state.get("state")
+
+        if current_state is None:
+            return
+
+        # Check if state has changed
+        if self._previous_state is not None and self._previous_state != current_state:
+            # State changed - update timestamp if it matches our sensor type
+            if self.entity_description.key == "last_opened" and current_state == "open":
+                self._attr_native_value = dt_util.utcnow()
+                self.async_write_ha_state()
+            elif (
+                self.entity_description.key == "last_closed"
+                and current_state == "closed"
+            ):
+                self._attr_native_value = dt_util.utcnow()
+                self.async_write_ha_state()
+
+        # Update previous state for next comparison
+        self._previous_state = current_state
 
     @property
     def available(self) -> bool:
