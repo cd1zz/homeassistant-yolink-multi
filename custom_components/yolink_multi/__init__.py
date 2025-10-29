@@ -81,8 +81,15 @@ class YoLinkHomeMessageListener(MessageListener):
             and msg_data.get("event") is not None
         ):
             device_registry = dr.async_get(self._hass)
+            # Use home_id in device identifier for multi-home support
+            home_id = self._entry.data.get("home_id")
+            device_identifier = (
+                f"{home_id}_{device_coordinator.device.device_id}"
+                if home_id
+                else device_coordinator.device.device_id
+            )
             device_entry = device_registry.async_get_device(
-                identifiers={(DOMAIN, device_coordinator.device.device_id)}
+                identifiers={(DOMAIN, device_identifier)}
             )
             if device_entry is None:
                 return
@@ -181,13 +188,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
     for device_entry in device_entries:
         for identifier in device_entry.identifiers:
-            if (
-                identifier[0] == DOMAIN
-                and device_coordinators.get(identifier[1]) is None
-            ):
-                device_registry.async_update_device(
-                    device_entry.id, remove_config_entry_id=entry.entry_id
+            if identifier[0] == DOMAIN:
+                # Extract device_id from identifier (format: "home_id_device_id" or "device_id")
+                device_identifier = identifier[1]
+                # Remove home_id prefix if present
+                device_id = (
+                    device_identifier.split("_", 1)[1]
+                    if home_id and device_identifier.startswith(f"{home_id}_")
+                    else device_identifier
                 )
+                if device_coordinators.get(device_id) is None:
+                    device_registry.async_update_device(
+                        device_entry.id, remove_config_entry_id=entry.entry_id
+                    )
 
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

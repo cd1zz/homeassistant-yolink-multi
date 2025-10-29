@@ -4,6 +4,7 @@
   "codeowners": ["@cd1zz"],
   "config_flow": true,
   "documentation": "https://github.com/cd1zz/homeassistant-yolink-multi",
+  "integration_type": "hub",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/cd1zz/homeassistant-yolink-multi/issues",
   "requirements": ["yolink-api==0.5.8"],
