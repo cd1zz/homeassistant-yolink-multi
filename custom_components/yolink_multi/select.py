@@ -105,7 +105,7 @@ class YoLinkSelectEntity(YoLinkEntity, SelectEntity):
             current_value := self.entity_description.value(
                 state.get(self.entity_description.state_key)
             )
-        ) is None and self.entity_description.should_update_entity(
+        ) is None or self.entity_description.should_update_entity(
             current_value
         ) is False:
             return

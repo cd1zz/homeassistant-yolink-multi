@@ -107,7 +107,7 @@ class YoLinkClimateEntity(YoLinkEntity, ClimateEntity):
         eco_setting = state.get("eco")
         if eco_setting is not None:
             self._attr_preset_mode = (
-                PRESET_NONE if eco_setting.get("mode") == "on" else PRESET_ECO
+                PRESET_ECO if eco_setting.get("mode") == "on" else PRESET_NONE
             )
         self.async_write_ha_state()
 

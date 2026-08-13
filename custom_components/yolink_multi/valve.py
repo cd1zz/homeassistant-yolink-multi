@@ -154,7 +154,7 @@ class YoLinkValveEntity(YoLinkEntity, ValveEntity):
             attr_val := self.entity_description.value(
                 state.get(self.entity_description.key)
             )
-        ) is None and self.entity_description.should_update_entity(attr_val) is False:
+        ) is None or self.entity_description.should_update_entity(attr_val) is False:
             return
         if self.entity_description.is_available(self.coordinator.device, state) is True:
             self._attr_is_closed = attr_val
@@ -181,13 +181,13 @@ class YoLinkValveEntity(YoLinkEntity, ValveEntity):
                 await self.call_device(
                     ClientRequest("setState", {"valves": {str(channel_index): state}})
                 )
-        if self.coordinator.device.device_type == ATTR_DEVICE_SPRINKLER:
+        elif self.coordinator.device.device_type == ATTR_DEVICE_SPRINKLER:
             await self.call_device(
                 ClientRequest(
                     "setManualWater", {"state": "start" if state == "open" else "stop"}
                 )
             )
-        if self.coordinator.device.device_type == ATTR_DEVICE_SPRINKLER_V2:
+        elif self.coordinator.device.device_type == ATTR_DEVICE_SPRINKLER_V2:
             await self.call_device(
                 ClientRequest("setState", {"running": state == "open"})
             )

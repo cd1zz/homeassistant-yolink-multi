@@ -47,7 +47,7 @@ DEVICE_TYPES: tuple[YoLinkSwitchEntityDescription, ...] = (
     ),
     YoLinkSwitchEntityDescription(
         key="manipulator_state",
-        translation_key="manipulator_state",
+        # Primary entity of the device: named after the device itself
         name=None,
         exists_fn=lambda device: device.device_type == ATTR_DEVICE_MANIPULATOR,
     ),
@@ -171,7 +171,7 @@ class YoLinkSwitchEntity(YoLinkEntity, SwitchEntity):
 
     async def call_state_change(self, state: str) -> None:
         """Call setState api to change switch state."""
-        client_request: ClientRequest = None
+        client_request: ClientRequest
         if self.coordinator.device.device_type in [
             ATTR_DEVICE_OUTLET,
             ATTR_DEVICE_MULTI_OUTLET,

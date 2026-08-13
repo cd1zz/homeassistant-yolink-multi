@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from datetime import timedelta
 import logging
 from typing import Any
 
@@ -23,16 +22,21 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, device_registry as dr
-from homeassistant.helpers.typing import ConfigType
 
 from . import api
-from .const import ATTR_LORA_INFO, CONF_SECRET_KEY, CONF_UAID, DOMAIN, SUPPORTED_REMOTERS, YOLINK_EVENT
+from .const import (
+    ATTR_LORA_INFO,
+    CONF_HOME_ID,
+    CONF_SECRET_KEY,
+    CONF_UAID,
+    DOMAIN,
+    SUPPORTED_REMOTERS,
+    YOLINK_EVENT,
+)
 from .coordinator import YoLinkCoordinator
 from .device_trigger import CONF_LONG_PRESS, CONF_SHORT_PRESS
 
 _LOGGER = logging.getLogger(__name__)
-
-SCAN_INTERVAL = timedelta(minutes=5)
 
 PLATFORMS = [
     Platform.BINARY_SENSOR,
@@ -82,7 +86,7 @@ class YoLinkHomeMessageListener(MessageListener):
         ):
             device_registry = dr.async_get(self._hass)
             # Use home_id in device identifier for multi-home support
-            home_id = self._entry.data.get("home_id")
+            home_id = self._entry.data.get(CONF_HOME_ID)
             device_identifier = (
                 f"{home_id}_{device_coordinator.device.device_id}"
                 if home_id
@@ -115,12 +119,6 @@ class YoLinkHomeStore:
     home_id: str
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up YoLink Multi-Home."""
-    # No services to set up for now
-    return True
-
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up YoLink Multi-Home from a config entry."""
     hass.data.setdefault(DOMAIN, {})
@@ -128,7 +126,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Get UAC credentials from config entry
     uaid = entry.data[CONF_UAID]
     secret_key = entry.data[CONF_SECRET_KEY]
-    home_id = entry.data.get("home_id")
+    home_id = entry.data.get(CONF_HOME_ID)
 
     # Create UAC authentication manager
     session = aiohttp_client.async_get_clientsession(hass)
@@ -183,7 +181,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         yolink_home, device_coordinators, home_id
     )
 
-    # Clean up devices no longer associated to the account
+    # Migrate legacy device identifiers and clean up devices no longer
+    # associated to the account
     device_registry = dr.async_get(hass)
     device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
     for device_entry in device_entries:
@@ -191,16 +190,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if identifier[0] == DOMAIN:
                 # Extract device_id from identifier (format: "home_id_device_id" or "device_id")
                 device_identifier = identifier[1]
-                # Remove home_id prefix if present
                 device_id = (
-                    device_identifier.split("_", 1)[1]
-                    if home_id and device_identifier.startswith(f"{home_id}_")
+                    device_identifier.removeprefix(f"{home_id}_")
+                    if home_id
                     else device_identifier
                 )
                 if device_coordinators.get(device_id) is None:
                     device_registry.async_update_device(
                         device_entry.id, remove_config_entry_id=entry.entry_id
                     )
+                elif home_id and device_identifier == device_id:
+                    # Device registered before identifiers were prefixed with
+                    # home_id; migrate in place so entities keep their device
+                    # instead of spawning a duplicate.
+                    new_identifier = (DOMAIN, f"{home_id}_{device_id}")
+                    if (
+                        device_registry.async_get_device(
+                            identifiers={new_identifier}
+                        )
+                        is None
+                    ):
+                        device_registry.async_update_device(
+                            device_entry.id, new_identifiers={new_identifier}
+                        )
+                    else:
+                        # A prefixed duplicate already exists; drop the
+                        # legacy device in favor of it.
+                        device_registry.async_update_device(
+                            device_entry.id, remove_config_entry_id=entry.entry_id
+                        )
 
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

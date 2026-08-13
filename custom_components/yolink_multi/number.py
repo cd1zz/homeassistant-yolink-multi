@@ -108,7 +108,7 @@ class YoLinkNumberTypeConfigEntity(YoLinkEntity, NumberEntity):
         """Update HA Entity State."""
         if (
             attr_val := self.entity_description.value(state)
-        ) is None and self.entity_description.should_update_entity(attr_val) is False:
+        ) is None or self.entity_description.should_update_entity(attr_val) is False:
             return
         self._attr_native_value = attr_val
         self.async_write_ha_state()

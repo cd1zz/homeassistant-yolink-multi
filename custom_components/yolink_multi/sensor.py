@@ -417,7 +417,7 @@ class YoLinkSensorEntity(YoLinkEntity, SensorEntity):
             attr_val := self.entity_description.value(
                 state.get(self.entity_description.key)
             )
-        ) is None and self.entity_description.should_update_entity(attr_val) is False:
+        ) is None or self.entity_description.should_update_entity(attr_val) is False:
             return
         self._attr_native_value = attr_val
         self.async_write_ha_state()
@@ -458,17 +458,10 @@ class YoLinkDoorTimestampSensorEntity(YoLinkEntity, RestoreEntity, SensorEntity)
         await super().async_added_to_hass()
 
         # Restore the previous timestamp value
+        # (parse_datetime returns None for unparsable input)
         if (last_state := await self.async_get_last_state()) is not None:
             if last_state.state not in (None, "unknown", "unavailable"):
-                try:
-                    self._attr_native_value = dt_util.parse_datetime(last_state.state)
-                except (ValueError, TypeError):
-                    # If we can't parse the old state, just start fresh
-                    self._attr_native_value = None
-
-        # Get current door state from coordinator to initialize _previous_state
-        if self.coordinator.data:
-            self._previous_state = self.coordinator.data.get("state")
+                self._attr_native_value = dt_util.parse_datetime(last_state.state)
 
     @callback
     def update_entity_state(self, state: dict) -> None:

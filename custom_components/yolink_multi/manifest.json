@@ -7,6 +7,7 @@
   "integration_type": "hub",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/cd1zz/homeassistant-yolink-multi/issues",
+  "loggers": ["yolink"],
   "requirements": ["yolink-api==0.5.8"],
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

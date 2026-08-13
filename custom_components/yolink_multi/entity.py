@@ -12,7 +12,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER
+from .const import CONF_HOME_ID, DOMAIN, MANUFACTURER
 from .coordinator import YoLinkCoordinator
 
 
@@ -51,10 +51,7 @@ class YoLinkEntity(CoordinatorEntity[YoLinkCoordinator]):
     def device_info(self) -> DeviceInfo:
         """Return the device info for HA."""
         # Include home_id in identifier to support multiple homes
-        home_id = self.config_entry.data.get("home_id")
-        home_name = self.config_entry.data.get("home_name", "YoLink")
-
-        # Create unique device identifier including home_id
+        home_id = self.config_entry.data.get(CONF_HOME_ID)
         device_identifier = (
             f"{home_id}_{self.coordinator.device.device_id}"
             if home_id
@@ -67,8 +64,6 @@ class YoLinkEntity(CoordinatorEntity[YoLinkCoordinator]):
             model=self.coordinator.device.device_type,
             model_id=self.coordinator.device.device_model_name,
             name=self.coordinator.device.device_name,
-            # Add suggested area based on home name to help organize
-            suggested_area=home_name if home_name != "YoLink" else None,
         )
 
     @callback

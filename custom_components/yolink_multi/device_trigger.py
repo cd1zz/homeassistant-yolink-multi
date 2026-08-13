@@ -15,7 +15,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
-from . import DOMAIN, YOLINK_EVENT
 from .const import (
     DEV_MODEL_FLEX_FOB_YS3604_EC,
     DEV_MODEL_FLEX_FOB_YS3604_UC,
@@ -25,6 +24,8 @@ from .const import (
     DEV_MODEL_SWITCH_YS5708_UC,
     DEV_MODEL_SWITCH_YS5709_EC,
     DEV_MODEL_SWITCH_YS5709_UC,
+    DOMAIN,
+    YOLINK_EVENT,
 )
 
 CONF_BUTTON_1 = "button_1"

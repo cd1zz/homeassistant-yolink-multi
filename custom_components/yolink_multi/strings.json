@@ -20,6 +20,7 @@
     },
     "error": {
       "cannot_connect": "Failed to connect to YoLink API. Please check your credentials and try again.",
+      "invalid_auth": "Invalid credentials. Please check your UAID and Secret Key.",
       "timeout_connect": "Timeout connecting to YoLink API. Please try again.",
       "invalid_home": "Could not retrieve home information. Please check your credentials.",
       "wrong_home": "These credentials are for a different home. Please use credentials for the same home.",
@@ -30,19 +31,130 @@
       "reauth_successful": "Reauthentication successful."
     }
   },
+  "device_automation": {
+    "trigger_type": {
+      "button_1_long_press": "Button_1 (long press)",
+      "button_1_short_press": "Button_1 (short press)",
+      "button_2_long_press": "Button_2 (long press)",
+      "button_2_short_press": "Button_2 (short press)",
+      "button_3_long_press": "Button_3 (long press)",
+      "button_3_short_press": "Button_3 (short press)",
+      "button_4_long_press": "Button_4 (long press)",
+      "button_4_short_press": "Button_4 (short press)"
+    }
+  },
   "entity": {
-    "sensor": {
-      "last_opened": {
-        "name": "Last opened"
-      },
-      "last_closed": {
-        "name": "Last closed"
-      }
-    },
     "binary_sensor": {
       "online": {
         "name": "Online"
+      },
+      "water_running": {
+        "name": "Water is flowing"
       }
+    },
+    "number": {
+      "config_volume": {
+        "name": "Volume"
+      }
+    },
+    "select": {
+      "sprinkler_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "manual": "Manual",
+          "off": "Off"
+        }
+      }
+    },
+    "sensor": {
+      "current_power": {
+        "name": "Current power"
+      },
+      "last_closed": {
+        "name": "Last closed"
+      },
+      "last_opened": {
+        "name": "Last opened"
+      },
+      "power_consumption": {
+        "name": "Power consumption"
+      },
+      "power_failure_alarm": {
+        "name": "Power failure alarm",
+        "state": {
+          "alert": "Alert",
+          "normal": "Normal",
+          "off": "Off"
+        }
+      },
+      "power_failure_alarm_beep": {
+        "name": "Power failure alarm beep",
+        "state": {
+          "disabled": "Disabled",
+          "enabled": "Enabled"
+        }
+      },
+      "power_failure_alarm_mute": {
+        "name": "Power failure alarm mute",
+        "state": {
+          "muted": "Muted",
+          "unmuted": "Unmuted"
+        }
+      },
+      "power_failure_alarm_volume": {
+        "name": "Power failure alarm volume",
+        "state": {
+          "high": "High",
+          "low": "Low",
+          "medium": "Medium"
+        }
+      },
+      "water_meter_1_reading": {
+        "name": "Water meter 1 reading"
+      },
+      "water_meter_2_reading": {
+        "name": "Water meter 2 reading"
+      },
+      "water_meter_reading": {
+        "name": "Water meter reading"
+      }
+    },
+    "switch": {
+      "plug_1": {
+        "name": "Plug 1"
+      },
+      "plug_2": {
+        "name": "Plug 2"
+      },
+      "plug_3": {
+        "name": "Plug 3"
+      },
+      "plug_4": {
+        "name": "Plug 4"
+      },
+      "usb_ports": {
+        "name": "USB ports"
+      }
+    },
+    "valve": {
+      "meter_valve_1_state": {
+        "name": "Valve 1"
+      },
+      "meter_valve_2_state": {
+        "name": "Valve 2"
+      },
+      "meter_valve_state": {
+        "name": "Valve state"
+      },
+      "sprinkler_valve": {
+        "name": "Valve"
+      }
+    }
+  },
+  "exceptions": {
+    "valve_inoperable_currently": {
+      "message": "The Valve cannot be operated currently."
     }
   }
 }

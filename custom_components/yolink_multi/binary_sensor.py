@@ -24,6 +24,7 @@ from yolink.const import (
     ATTR_DEVICE_SMART_REMOTER,
     ATTR_DEVICE_SMOKE_ALARM,
     ATTR_DEVICE_SOIL_TH_SENSOR,
+    ATTR_DEVICE_SPEAKER_HUB,
     ATTR_DEVICE_SPRINKLER,
     ATTR_DEVICE_SPRINKLER_V2,
     ATTR_DEVICE_SWITCH,
@@ -90,6 +91,7 @@ SENSOR_DEVICE_TYPE = [
     ATTR_GARAGE_DOOR_CONTROLLER,
     ATTR_DEVICE_SOIL_TH_SENSOR,
     ATTR_DEVICE_SMOKE_ALARM,
+    ATTR_DEVICE_SPEAKER_HUB,
     ATTR_DEVICE_SPRINKLER,
     ATTR_DEVICE_SPRINKLER_V2,
 ]
@@ -212,14 +214,22 @@ class YoLinkBinarySensorEntity(YoLinkEntity, BinarySensorEntity):
         )
 
     @callback
-    def update_entity_state(self, state: dict[str, Any]) -> None:
-        """Update HA Entity State."""
-        # Special handling for online/connectivity sensor
+    def _handle_coordinator_update(self) -> None:
+        """Update state.
+
+        The online sensor tracks coordinator.dev_online rather than device
+        data, so it must update even when no state has ever been fetched
+        (the base class skips update_entity_state while data is empty).
+        """
         if self.entity_description.key == "online":
             self._attr_is_on = self.coordinator.dev_online
             self.async_write_ha_state()
             return
+        super()._handle_coordinator_update()
 
+    @callback
+    def update_entity_state(self, state: dict[str, Any]) -> None:
+        """Update HA Entity State."""
         if (
             _attr_val := self.entity_description.value(
                 state.get(self.entity_description.state_key)
