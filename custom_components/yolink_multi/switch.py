@@ -62,7 +62,7 @@ DEVICE_TYPES: tuple[YoLinkSwitchEntityDescription, ...] = (
         translation_key="usb_ports",
         device_class=SwitchDeviceClass.OUTLET,
         exists_fn=lambda device: device.device_type == ATTR_DEVICE_MULTI_OUTLET
-        and device.device_model_name.startswith(DEV_MODEL_MULTI_OUTLET_YS6801),
+        and (device.device_model_name or "").startswith(DEV_MODEL_MULTI_OUTLET_YS6801),
         plug_index_fn=lambda _: 0,
     ),
     YoLinkSwitchEntityDescription(
@@ -72,7 +72,7 @@ DEVICE_TYPES: tuple[YoLinkSwitchEntityDescription, ...] = (
         exists_fn=lambda device: device.device_type == ATTR_DEVICE_MULTI_OUTLET,
         plug_index_fn=lambda device: (
             1
-            if device.device_model_name.startswith(DEV_MODEL_MULTI_OUTLET_YS6801)
+            if (device.device_model_name or "").startswith(DEV_MODEL_MULTI_OUTLET_YS6801)
             else 0
         ),
     ),
@@ -83,7 +83,7 @@ DEVICE_TYPES: tuple[YoLinkSwitchEntityDescription, ...] = (
         exists_fn=lambda device: device.device_type == ATTR_DEVICE_MULTI_OUTLET,
         plug_index_fn=lambda device: (
             2
-            if device.device_model_name.startswith(DEV_MODEL_MULTI_OUTLET_YS6801)
+            if (device.device_model_name or "").startswith(DEV_MODEL_MULTI_OUTLET_YS6801)
             else 1
         ),
     ),
@@ -92,7 +92,7 @@ DEVICE_TYPES: tuple[YoLinkSwitchEntityDescription, ...] = (
         translation_key="plug_3",
         device_class=SwitchDeviceClass.OUTLET,
         exists_fn=lambda device: device.device_type == ATTR_DEVICE_MULTI_OUTLET
-        and device.device_model_name.startswith(DEV_MODEL_MULTI_OUTLET_YS6801),
+        and (device.device_model_name or "").startswith(DEV_MODEL_MULTI_OUTLET_YS6801),
         plug_index_fn=lambda _: 3,
     ),
     YoLinkSwitchEntityDescription(
@@ -100,7 +100,7 @@ DEVICE_TYPES: tuple[YoLinkSwitchEntityDescription, ...] = (
         translation_key="plug_4",
         device_class=SwitchDeviceClass.OUTLET,
         exists_fn=lambda device: device.device_type == ATTR_DEVICE_MULTI_OUTLET
-        and device.device_model_name.startswith(DEV_MODEL_MULTI_OUTLET_YS6801),
+        and (device.device_model_name or "").startswith(DEV_MODEL_MULTI_OUTLET_YS6801),
         plug_index_fn=lambda _: 4,
     ),
 )
