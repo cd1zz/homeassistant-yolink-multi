@@ -8,6 +8,6 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/cd1zz/homeassistant-yolink-multi/issues",
   "loggers": ["yolink"],
-  "requirements": ["yolink-api==0.5.8"],
-  "version": "1.1.1"
+  "requirements": ["yolink-api==0.6.5"],
+  "version": "1.1.2"
 }
