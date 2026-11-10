@@ -244,6 +244,6 @@ class YoLinkBinarySensorEntity(YoLinkEntity, BinarySensorEntity):
         """Return true is device is available."""
         # Online sensor is always available (it reports online/offline status)
         if self.entity_description.key == "online":
-            return super().available
+            return self.coordinator.last_update_success
 
         return super().available and self.coordinator.dev_online

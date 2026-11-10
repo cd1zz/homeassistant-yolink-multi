@@ -19,6 +19,10 @@ TOKEN_REFRESH_BUFFER = 300  # Refresh token 5 minutes before expiry
 TOKEN_URL = "https://api.yosmart.com/open/yolink/token"
 
 
+# Token-endpoint error messages (HTTP 200, {"state": "error", "msg": ...})
+# that mean the UAID / secret key themselves are wrong.
+_CREDENTIAL_REJECTED_MSGS = frozenset({"auth failed", "client_id not existed"})
+
 class YoLinkUACAuth(YoLinkAuthMgr):
     """YoLink UAC (User Access Credentials) authentication manager.
 
@@ -135,9 +139,18 @@ class YoLinkUACAuth(YoLinkAuthMgr):
                     token_data,
                 )
                 return await self._async_retry_with_client_credentials()
-            raise YoLinkAuthFailError(
-                str(token_data.get("code", "unknown")),
-                f"Token endpoint returned no access token: {token_data}",
+            # Only a real credential rejection may start reauth. Throttling
+            # and outage bodies also arrive as HTTP 200 without a token and
+            # must stay retryable (ConfigEntryNotReady / UpdateFailed).
+            code = str(token_data.get("code", "unknown"))
+            msg = str(token_data.get("msg") or token_data.get("desc") or "")
+            if msg.strip().lower() in _CREDENTIAL_REJECTED_MSGS:
+                raise YoLinkAuthFailError(
+                    code, f"UAC credentials were rejected: {msg}"
+                )
+            _LOGGER.error("Token endpoint returned no access token: %s", token_data)
+            raise YoLinkClientError(
+                code, f"Token endpoint returned no access token: {msg or token_data}"
             )
 
         self._access_token = access_token

@@ -31,6 +31,15 @@ class YoLinkEntity(CoordinatorEntity[YoLinkCoordinator]):
         self.config_entry = config_entry
 
     @property
+    def available(self) -> bool:
+        """Unavailable when the poll failed or the device stopped reporting.
+
+        Previously only sensors honored dev_online; valves, switches, locks
+        and the rest kept showing their last state as if it were current.
+        """
+        return super().available and self.coordinator.dev_online
+
+    @property
     def device_id(self) -> str:
         """Return the device id of the YoLink device."""
         return self.coordinator.device.device_id
